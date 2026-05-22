@@ -4,11 +4,14 @@
  */
 {
 	"$schema": "node_modules/wrangler/config-schema.json",
-	"name": "my-react-app",
+	"name": "cloudflare-react-image-gen",
 	"main": "worker/index.ts",
 	"compatibility_date": "2026-05-22",
 	"assets": {
 		"not_found_handling": "single-page-application"
+	},
+	"ai": {
+		"binding": "AI"
 	},
 	"observability": {
 		"enabled": true

@@ -1,12 +1,44 @@
-export default {
-  fetch(request) {
-    const url = new URL(request.url);
+export interface Env {
+  AI: any;
+}
 
-    if (url.pathname.startsWith("/api/")) {
-      return Response.json({
-        name: "Cloudflare",
+export default {
+  async fetch(request: Request, env: Env, _ctx: ExecutionContext): Promise<Response> {
+    try {
+      const { prompt, model } = await request.json<{ prompt: string; model?: string }>();
+
+      if (!prompt) {
+        return new Response(
+          JSON.stringify({ error: "Prompt is required" }),
+          { status: 400, headers: { "Content-Type": "application/json" } }
+        );
+      }
+
+      const targetModel = model || '@cf/stabilityai/stable-diffusion-xl-base-1.0';
+      const aiResponse = await env.AI.run(targetModel, { prompt });
+
+      return new Response(aiResponse, {
+        status: 200,
+        headers: {
+          "Content-Type": "image/jpeg",
+          "Access-Control-Allow-Origin": "*",
+          "Access-Control-Allow-Headers": "Content-Type"
+        }
       });
+
+    } catch (error: any) {
+      return new Response(
+        JSON.stringify({
+          error: error.message || 'Generation failed at edge node.',
+        }),
+        {
+          status: 500,
+          headers: {
+            "Content-Type": "application/json",
+            "Access-Control-Allow-Origin": "*"
+          }
+        }
+      );
     }
-		return new Response(null, { status: 404 });
-  },
-} satisfies ExportedHandler<Env>;
+  }
+};
